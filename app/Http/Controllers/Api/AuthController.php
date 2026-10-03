@@ -59,6 +59,9 @@ $pengguna->password) === false) {
                 'pesan' => 'Email atau kata sandi tidak sesuai', 
             ], 401); 
         } 
+        $pengguna->update([
+            'terakhir_login' => now(),
+        ]);
  
         $kemampuan = $pengguna->peran === 'admin' 
             ? ['mahasiswa:baca', 'mahasiswa:tulis'] 
@@ -116,4 +119,33 @@ $kemampuan)->plainTextToken;
             'pesan' => 'Seluruh sesi perangkat telah diakhiri', 
         ]); 
     } 
+    public function password(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'password_lama' => ['required', 'string'],
+            'password_baru' => [
+                'required',
+                'confirmed',
+                Password::min(8)->letters()->numbers()
+            ],
+        ]);
+
+        $pengguna = $request->user();
+
+        if (!Hash::check($data['password_lama'], $pengguna->password)) {
+            return response()->json([
+                'sukses' => false,
+                'pesan' => 'Password lama tidak sesuai',
+            ], 422);
+        }
+
+        $pengguna->update([
+            'password' => Hash::make($data['password_baru']),
+        ]);
+
+        return response()->json([
+            'sukses' => true,
+            'pesan' => 'Password berhasil diubah',
+        ]);
+    }
 } 

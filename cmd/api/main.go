@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -16,6 +15,15 @@ import (
 
 func main() {
 	cfg := config.Load()
+
+	// Hubungkan ke database MySQL.
+	config.HubungkanBasisData(cfg)
+
+	// Buat tabel berdasarkan model GORM.
+	config.Migrasi()
+
+	// Masukkan data awal program studi.
+	config.DataAwal()
 
 	app := fiber.New(fiber.Config{
 		AppName: cfg.AppName,

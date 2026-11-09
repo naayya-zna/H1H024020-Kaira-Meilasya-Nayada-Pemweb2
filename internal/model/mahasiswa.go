@@ -1,18 +1,40 @@
 package model
 
-// Mahasiswa mendefinisikan struktur data mahasiswa.
-type Mahasiswa struct {
-	ID       int     `json:"id"`
-	NIM      string  `json:"nim"`
-	Nama     string  `json:"nama"`
-	Prodi    string  `json:"prodi"`
-	Angkatan int     `json:"angkatan"`
-	IPK      float64 `json:"ipk"`
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
+// Model Program Studi
+type ProgramStudi struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Kode      string    `gorm:"size:10;uniqueIndex" json:"kode"`
+	Nama      string    `gorm:"size:100" json:"nama"`
+	Jenjang   string    `gorm:"size:10" json:"jenjang"`
+	CreatedAt time.Time `json:"dibuat_pada"`
+	UpdatedAt time.Time `json:"diubah_pada"`
 }
 
-// DataMahasiswa berisi data contoh untuk API.
-var DataMahasiswa = []Mahasiswa{
-	{ID: 1, NIM: "H1H024001", Nama: "Andi", Prodi: "Teknik Komputer", Angkatan: 2024, IPK: 3.5},
-	{ID: 2, NIM: "H1H024002", Nama: "Budi", Prodi: "Teknik Komputer", Angkatan: 2024, IPK: 3.7},
-	{ID: 3, NIM: "H1H025001", Nama: "naya", Prodi: "Teknik Komputer", Angkatan: 2025, IPK: 3.8},
+// Model Mahasiswa
+type Mahasiswa struct {
+	ID             uint           `gorm:"primaryKey" json:"id"`
+	ProgramStudiID uint           `gorm:"index" json:"program_studi_id"`
+	ProgramStudi   *ProgramStudi  `gorm:"foreignKey:ProgramStudiID" json:"program_studi,omitempty"`
+	Nim            string         `gorm:"size:20;uniqueIndex" json:"nim"`
+	Nama           string         `gorm:"size:100" json:"nama"`
+	Email          string         `gorm:"size:100;uniqueIndex" json:"email"`
+	Angkatan       int            `json:"angkatan"`
+	Ipk            float64        `gorm:"type:decimal(4,2)" json:"ipk"`
+	Aktif          bool           `gorm:"default:true" json:"aktif"`
+	CreatedAt      time.Time      `json:"dibuat_pada"`
+	UpdatedAt      time.Time      `json:"diubah_pada"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+}
+type ProgramStudiDenganJumlahMahasiswa struct {
+	ID              uint   `json:"id"`
+	Kode            string `json:"kode"`
+	Nama            string `json:"nama"`
+	Jenjang         string `json:"jenjang"`
+	JumlahMahasiswa int64  `json:"jumlah_mahasiswa"`
 }

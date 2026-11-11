@@ -10,6 +10,7 @@ import (
 	"latihan-fiber-api/internal/model"
 	"latihan-fiber-api/internal/repository"
 	"latihan-fiber-api/internal/service"
+	"latihan-fiber-api/internal/validasi"
 
 	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
@@ -142,25 +143,27 @@ func GetMahasiswaByNIM(c fiber.Ctx) error {
 }
 
 // CreateMahasiswa menambahkan data mahasiswa baru.
+
 func CreateMahasiswa(c fiber.Ctx) error {
 	var request dto.CreateMahasiswaRequest
 
+	// Membaca data JSON dari request.
 	if err := c.Bind().Body(&request); err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"pesan": "Format data tidak valid",
+			"sukses": false,
+			"pesan":  "Format data tidak valid",
 		})
 	}
 
-	// Validasi data mahasiswa.
-	if request.ProgramStudiID == 0 ||
-		request.Nim == "" ||
-		request.Nama == "" ||
-		request.Email == "" ||
-		request.Angkatan <= 0 ||
-		request.Ipk < 0 ||
-		request.Ipk > 4 {
-		return c.Status(400).JSON(fiber.Map{
-			"pesan": "Data mahasiswa tidak lengkap atau tidak valid",
+	// Memeriksa aturan validasi pada DTO.
+	galat := validasi.Periksa(request)
+
+	// Mengembalikan HTTP 422 jika terdapat kesalahan validasi.
+	if len(galat) > 0 {
+		return c.Status(422).JSON(fiber.Map{
+			"sukses": false,
+			"pesan":  "Data yang dikirim tidak valid",
+			"galat":  galat,
 		})
 	}
 
@@ -179,13 +182,15 @@ func CreateMahasiswa(c fiber.Ctx) error {
 
 	if err := svc.Create(&mahasiswa); err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"pesan": "Gagal menambahkan mahasiswa. Periksa NIM, email, dan program studi",
+			"sukses": false,
+			"pesan":  "Gagal menambahkan mahasiswa. Periksa NIM, email, dan program studi",
 		})
 	}
 
 	return c.Status(201).JSON(fiber.Map{
-		"pesan": "Mahasiswa berhasil ditambahkan",
-		"data":  mahasiswa,
+		"sukses": true,
+		"pesan":  "Mahasiswa berhasil ditambahkan",
+		"data":   mahasiswa,
 	})
 }
 

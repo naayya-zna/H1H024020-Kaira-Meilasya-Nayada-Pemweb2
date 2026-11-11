@@ -27,15 +27,28 @@ func main() {
 
 	app := fiber.New(fiber.Config{
 		AppName: cfg.AppName,
+
+		// Menangani error secara terstruktur.
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
+			pesan := "Terjadi kesalahan pada server"
 
+			// Periksa apakah error berasal dari Fiber.
 			if e, ok := err.(*fiber.Error); ok {
 				code = e.Code
+
+				// Gunakan pesan error untuk status selain 500.
+				if code < 500 {
+					pesan = e.Message
+				}
 			}
 
+			// Catat detail error di terminal server.
+			log.Printf("Error [%d]: %v", code, err)
+
 			return c.Status(code).JSON(fiber.Map{
-				"pesan": err.Error(),
+				"sukses": false,
+				"pesan":  pesan,
 			})
 		},
 	})
@@ -53,8 +66,9 @@ func main() {
 
 	// Respons untuk endpoint yang tidak ditemukan.
 	app.Use(func(c fiber.Ctx) error {
-		return c.Status(404).JSON(fiber.Map{
-			"pesan": "Endpoint tidak ditemukan",
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"sukses": false,
+			"pesan":  "Endpoint tidak ditemukan",
 		})
 	})
 

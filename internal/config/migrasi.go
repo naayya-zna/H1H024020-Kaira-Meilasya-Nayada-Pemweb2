@@ -11,6 +11,8 @@ func Migrasi() {
 		&model.ProgramStudi{},
 		&model.Mahasiswa{},
 		&model.MataKuliah{},
+		&model.Pengguna{},
+		&model.TokenBlacklist{},
 	)
 
 	if err != nil {

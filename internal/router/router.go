@@ -7,11 +7,15 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// Setup mengatur endpoint API.
+// Setup mengatur seluruh endpoint API.
 func Setup(app *fiber.App) {
 	api := app.Group("/api")
 
-	// Endpoint status tidak membutuhkan API Key.
+	// =====================================
+	// ENDPOINT STATUS
+	// =====================================
+
+	// Tidak membutuhkan API Key.
 	api.Get("/status", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"status": "aktif",
@@ -19,35 +23,49 @@ func Setup(app *fiber.App) {
 		})
 	})
 
+	// =====================================
+	// ENDPOINT AUTENTIKASI
+	// =====================================
+
+	// Route autentikasi.
+	auth := api.Group("/auth")
+	auth.Post("/registrasi", handler.Registrasi)
+	auth.Post("/login", handler.Login)
+	auth.Get("/profil", middleware.Autentikasi(), handler.Profil)
+	auth.Post("/segarkan", middleware.Autentikasi(), handler.Segarkan)
+	auth.Post("/logout", middleware.Autentikasi(), handler.Logout)
+	// =====================================
+	// ENDPOINT MAHASISWA
+	// =====================================
+
 	// Semua endpoint mahasiswa membutuhkan API Key.
 	mahasiswa := api.Group("/mahasiswa", middleware.KunciApi)
 
-	// READ: Mengambil seluruh data mahasiswa.
 	mahasiswa.Get("/", handler.GetMahasiswa)
-
-	// READ: Mengambil mahasiswa berdasarkan NIM.
 	mahasiswa.Get("/nim/:nim", handler.GetMahasiswaByNIM)
-
-	// READ: Mengambil mahasiswa berdasarkan ID.
 	mahasiswa.Get("/:id", handler.GetMahasiswaByID)
-
-	// CREATE: Menambahkan mahasiswa baru.
 	mahasiswa.Post("/", handler.CreateMahasiswa)
-
-	// UPDATE: Memperbarui data mahasiswa.
 	mahasiswa.Put("/:id", handler.UpdateMahasiswa)
-
-	// DELETE: Menghapus data mahasiswa.
 	mahasiswa.Delete("/:id", handler.DeleteMahasiswa)
 	mahasiswa.Post("/:id/restore", handler.RestoreMahasiswa)
 
+	// =====================================
+	// ENDPOINT MATA KULIAH
+	// =====================================
+
 	matakuliah := api.Group("/matakuliah", middleware.KunciApi)
+
 	matakuliah.Get("/", handler.GetMataKuliah)
 	matakuliah.Get("/:id", handler.GetMataKuliahByID)
 	matakuliah.Post("/", handler.CreateMataKuliah)
 	matakuliah.Put("/:id", handler.UpdateMataKuliah)
 	matakuliah.Delete("/:id", handler.DeleteMataKuliah)
 
+	// =====================================
+	// ENDPOINT PROGRAM STUDI
+	// =====================================
+
 	programStudi := api.Group("/program-studi", middleware.KunciApi)
+
 	programStudi.Get("/", handler.GetProgramStudi)
 }
